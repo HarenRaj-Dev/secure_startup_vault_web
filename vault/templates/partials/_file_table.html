@@ -1,0 +1,69 @@
+<div class="file-table-wrapper">
+    <table class="vault-table">
+        <thead>
+            <tr>
+                <th>DOCUMENT NAME</th>
+                <th>OWNER</th>
+                <th>SECURED ON</th>
+                <th>SIZE</th>
+                <th>ACTIONS</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for file in files %}
+            <tr>
+                <td>{{ file.filename }}</td>
+                <td>{{ current_user.email.split('@')[0] }}</td>
+                <td>{{ file.upload_date.strftime('%Y-%m-%d') }}</td>
+                <td>
+                    {% if file.size %}
+                        {% if file.size < 1024 %}
+                            {{ file.size }} B
+                        {% elif file.size < 1024*1024 %}
+                            {{ "%.1f"|format(file.size / 1024) }} KB
+                        {% elif file.size < 1024*1024*1024 %}
+                            {{ "%.1f"|format(file.size / (1024*1024)) }} MB
+                        {% else %}
+                            {{ "%.1f"|format(file.size / (1024*1024*1024)) }} GB
+                        {% endif %}
+                    {% else %}
+                        Unknown
+                    {% endif %}
+                </td> 
+                <td>
+                    <div class="file-actions">
+                        {% if company and company.id %}
+                        <a href="{{ url_for('companies.download_company_file', company_id=company.id, file_id=file.id) }}" class="action-link download">Download</a>
+                        
+                        <form action="{{ url_for('companies.delete_company_file', company_id=company.id, file_id=file.id) }}" method="POST" class="delete-form">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <button type="submit" class="delete-btn" 
+                                    onclick="return confirm('Are you sure you want to permanently delete this encrypted file?')">
+                                Delete
+                            </button>
+                        </form>
+                        {% else %}
+                        <a href="{{ url_for('main.download_file', file_id=file.id) }}" class="action-link download">Download</a>
+                        
+                        <form action="{{ url_for('main.delete_file', file_id=file.id) }}" method="POST" class="delete-form">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <button type="submit" class="delete-btn" 
+                                    onclick="return confirm('Are you sure you want to permanently delete this encrypted file?')">
+                                Delete
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" class="empty-row">
+                    <img src="{{ url_for('static', filename='img/empty-folder.svg') }}" width="60">
+                    <p>No files secured in this vault yet.</p>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="company-container">
+    <div class="company-header">
+        <div class="company-info">
+            <img src="{{ url_for('static', filename='img/' + company.logo) }}?t={{ company.logo }}" class="company-lg-logo" width="50" height="50">
+            <h1>{{ company.name }}</h1>
+        </div>
+    </div>
+
+    <div class="company-navbar">
+        <a href="{{ url_for('companies.company_files', company_id=company.id) }}" class="active">Files</a>
+        <a href="{{ url_for('companies.company_users', company_id=company.id) }}">Users</a>
+        {% if can_manage_roles %}
+        <a href="{{ url_for('companies.company_roles', company_id=company.id) }}">Roles</a>
+        {% endif %}
+        {% if can_view_logs %}
+        <a href="{{ url_for('companies.company_logs', company_id=company.id) }}">Activity Logs</a>
+        {% endif %}
+        <a href="{{ url_for('companies.company_settings', company_id=company.id) }}">Settings</a>
+    </div>
+
+    <div class="tab-content">
+        <div class="content-actions">
+            <form action="{{ url_for('companies.upload_company_file', company_id=company.id) }}" method="POST" enctype="multipart/form-data" class="upload-form">
+                {{ form.hidden_tag() }}
+                <label for="file-upload" class="btn-primary">
+                    + Upload to Company
+                </label>
+                <input id="file-upload" type="file" name="file" onchange="this.form.submit()" style="display:none;">
+            </form>
+        </div>
+        
+        {% include 'partials/_file_table.html' %}
+    </div>
+</div>
+{% endblock %}
