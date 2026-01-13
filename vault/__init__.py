@@ -33,22 +33,33 @@ def create_app():
 
     with app.app_context():
         # Register Blueprints
-        from .auth.routes import auth_bp
-        from .companies.routes import companies_bp
+        from .auth import auth_bp
+        from .companies import companies_bp
+        from .api import api_bp
         from .main import routes 
 
         app.register_blueprint(auth_bp)
         app.register_blueprint(main_bp) 
         app.register_blueprint(companies_bp)
+        app.register_blueprint(api_bp)
 
-        # Build tables automatically (works for both local and cloud)
+        # Build tables automatically (ONLY if they don't exist)
         from . import models
-        db.create_all()
+        try:
+            db.create_all()
+        except Exception as e:
+            print(f"Table creation skipped or failed: {e}")
 
-    # Handle Uploads Folder
-    upload_path = os.path.abspath(os.path.join(app.root_path, '..', 'uploads'))
-    if not os.path.exists(upload_path):
-        os.makedirs(upload_path)
+    # --- FIX FOR READ-ONLY FILE SYSTEM ---
+    if os.environ.get('VERCEL'):
+        # On Vercel, use the temporary folder provided by the OS
+        upload_path = '/tmp'
+    else:
+        # On your laptop, keep using your local uploads folder
+        upload_path = os.path.abspath(os.path.join(app.root_path, '..', 'uploads'))
+        if not os.path.exists(upload_path):
+            os.makedirs(upload_path)
+            
     app.config['UPLOAD_FOLDER'] = upload_path
 
     return app

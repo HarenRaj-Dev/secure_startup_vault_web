@@ -11,7 +11,7 @@ Werkzeug==3.0.1
 
 # Database
 SQLAlchemy==1.4.51
-psycopg2-binary
+psycopg2-binary==2.9.9
 
 # Validation
 email-validator>=2.0
