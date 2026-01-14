@@ -300,3 +300,46 @@ button, .btn-primary {
     overflow-y: auto;
     padding: 20px;
 }
+
+/* Footer styling */
+.site-footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 60px;
+    background: #0f172a;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 900;
+}
+.site-footer .footer-links {
+    color: var(--text-muted);
+    font-size: 14px;
+}
+.site-footer .footer-links a {
+    color: var(--text-muted);
+    text-decoration: none;
+    margin: 0 8px;
+    font-weight: 600;
+}
+.site-footer .footer-links a:hover {
+    color: var(--accent);
+}
+
+/* Ensure page content doesn't get hidden behind fixed footer */
+body {
+    padding-bottom: 80px; /* matches footer height + spacing */
+}
+
+/* Generic page container for static pages */
+.page-container {
+    max-width: 900px;
+    margin: 40px auto;
+    background: var(--card-bg);
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 14px rgba(2,6,23,0.6);
+}

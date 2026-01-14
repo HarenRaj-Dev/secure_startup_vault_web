@@ -30,5 +30,17 @@
     
     {# THIS IS THE MISSING LINK #}
     {% block scripts %}{% endblock %}
+    
+    <footer class="site-footer">
+        <div class="footer-links">
+            <a href="{{ url_for('main.about') }}">About</a>
+            &nbsp;|&nbsp;
+            <a href="{{ url_for('main.privacy') }}">Privacy Policy</a>
+            &nbsp;|&nbsp;
+            <a href="{{ url_for('main.terms') }}">Terms</a>
+            &nbsp;|&nbsp;
+            <a href="{{ url_for('main.contact') }}">Contact</a>
+        </div>
+    </footer>
 </body>
 </html>

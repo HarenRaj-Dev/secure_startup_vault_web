@@ -9,6 +9,21 @@ from vault import db
 from vault.extensions import main_bp 
 from vault.main.forms import UploadFileForm
 from vault.models import File, Company, memberships
+from sqlalchemy import select
+
+def _get_user_companies():
+    if not current_user.is_authenticated:
+        return []
+    owned_companies = Company.query.filter_by(owner_id=current_user.id).all()
+    member_companies_query = db.session.execute(
+        select(Company).join(memberships, Company.id == memberships.c.company_id).where(memberships.c.user_id == current_user.id)
+    ).all()
+    member_companies = [row[0] for row in member_companies_query]
+    # dedupe by id
+    companies_map = {c.id: c for c in owned_companies}
+    for c in member_companies:
+        companies_map[c.id] = c
+    return list(companies_map.values())
 from vault.crypto_utils import decrypt_file_data
 from vault.crypto_utils import encrypt_file_data, decrypt_file_data
 
@@ -152,3 +167,23 @@ def view_file(file_id):
         mimetype='application/pdf',  # Or detect type based on extension
         as_attachment=False
     )
+
+
+@main_bp.route('/about')
+def about():
+    return render_template('main/about.html', companies=_get_user_companies())
+
+
+@main_bp.route('/privacy')
+def privacy():
+    return render_template('main/privacy.html', companies=_get_user_companies())
+
+
+@main_bp.route('/terms')
+def terms():
+    return render_template('main/terms.html', companies=_get_user_companies())
+
+
+@main_bp.route('/contact')
+def contact():
+    return render_template('main/contact.html', companies=_get_user_companies())
