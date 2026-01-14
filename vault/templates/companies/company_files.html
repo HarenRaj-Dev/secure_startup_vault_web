@@ -4,7 +4,11 @@
 <div class="company-container">
     <div class="company-header">
         <div class="company-info">
+            {% if company.logo and company.logo.startswith('logos/') %}
+            <img src="{{ url_for('companies.serve_logo', filename=company.logo) }}?t={{ company.logo }}" class="company-lg-logo" width="50" height="50">
+            {% else %}
             <img src="{{ url_for('static', filename='img/' + company.logo) }}?t={{ company.logo }}" class="company-lg-logo" width="50" height="50">
+            {% endif %}
             <h1>{{ company.name }}</h1>
         </div>
     </div>

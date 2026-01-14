@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, flash, current_app, send_file, request
+from flask import render_template, redirect, url_for, flash, current_app, send_file, request, send_from_directory
 from flask_login import login_required, current_user
 from vault import db
 from vault.models import Company, Role, ActivityLog, File, User, memberships
@@ -76,10 +76,14 @@ def company_settings(company_id):
         company.password = form.password.data
         if form.logo.data:
             logo_file = form.logo.data
-            logo_filename = secure_filename(logo_file.filename)
-            logo_path = os.path.join(current_app.root_path, 'static', 'img', logo_filename)
+            raw_name = secure_filename(logo_file.filename)
+            logo_filename = f"{uuid.uuid4().hex}_{raw_name}"
+            logos_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'logos')
+            os.makedirs(logos_dir, exist_ok=True)
+            logo_path = os.path.join(logos_dir, logo_filename)
             logo_file.save(logo_path)
-            company.logo = logo_filename
+            # store relative path under uploads so template can detect
+            company.logo = os.path.join('logos', logo_filename)
         db.session.commit()
         flash("Company settings updated!", "success")
         return redirect(url_for('companies.company_settings', company_id=company_id))
@@ -124,9 +128,8 @@ def remove_logo(company_id):
         return redirect(url_for('companies.company_settings', company_id=company_id))
     
     if company.logo and company.logo != 'logo.svg':
-        # Delete the file from disk
-        import os
-        logo_path = os.path.join(current_app.root_path, 'static', 'img', company.logo)
+        # Delete the file from the writable upload folder
+        logo_path = os.path.join(current_app.config['UPLOAD_FOLDER'], company.logo)
         if os.path.exists(logo_path):
             try:
                 os.remove(logo_path)
@@ -220,6 +223,9 @@ def download_company_file(company_id, file_id):
     
     # Read encrypted file
     file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], file_record.encrypted_name)
+    if not os.path.exists(file_path):
+        flash("File not found on server.", "danger")
+        return redirect(url_for('companies.company_files', company_id=company_id))
     with open(file_path, 'rb') as f:
         encrypted_data = f.read()
     
@@ -372,7 +378,7 @@ def company_users(company_id):
     can_manage_roles = has_permission(current_user, company_id, 'perm_manage_roles')
     can_view_logs = has_permission(current_user, company_id, 'perm_logs')
     
-    return render_template('companies/company_users.html', company=company, members=members, can_remove_user=can_remove_user, can_add_users=can_add_users, can_manage_roles=can_manage_roles, can_view_logs=can_view_logs, companies=get_user_companies())
+    return render_template('companies/company_users.html', company=company, members=members, can_remove_user=can_remove_user, can_add_users=can_add_users, can_manage_roles=can_manage_roles, can_view_logs=can_view_logs, csrf_token=generate_csrf(), companies=get_user_companies())
 
 @companies_bp.route('/<int:company_id>/add_user', methods=['GET', 'POST'])
 @login_required
@@ -447,7 +453,7 @@ def edit_user_role(company_id, user_id):
     current_role_id = membership[2]  # role_id is the third column
     current_role = Role.query.get(current_role_id) if current_role_id else None
     
-    return render_template('companies/edit_user_role.html', company=company, user=user, roles=roles, current_role=current_role, companies=get_user_companies())
+    return render_template('companies/edit_user_role.html', company=company, user=user, roles=roles, current_role=current_role, csrf_token=generate_csrf(), companies=get_user_companies())
 
 @companies_bp.route('/<int:company_id>/remove_user/<int:user_id>', methods=['POST'])
 @login_required
@@ -476,3 +482,13 @@ def remove_user(company_id, user_id):
     log_activity(company_id, current_user.email, f"Removed user: {user.email}")
     flash("User removed from company.", "success")
     return redirect(url_for('companies.company_users', company_id=company_id))
+
+
+@companies_bp.route('/logo/<path:filename>')
+def serve_logo(filename):
+    """Serve uploaded logo files from the configured UPLOAD_FOLDER."""
+    logos_dir = os.path.join(current_app.config['UPLOAD_FOLDER'])
+    try:
+        return send_from_directory(logos_dir, filename)
+    except Exception:
+        return redirect(url_for('static', filename='img/logo.svg'))
