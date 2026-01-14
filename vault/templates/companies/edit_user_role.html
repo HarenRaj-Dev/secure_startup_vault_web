@@ -17,6 +17,7 @@
     <div class="tab-content">
         <div class="settings-card">
             <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <div class="form-group">
                     <label>Select Role</label>
                     <select name="role_id" class="form-input">
