@@ -120,10 +120,25 @@
             </div>
 
             <div class="config-actions">
-                <button type="button" class="btn-danger">Delete Role</button>
+                {% if role %}
+                <button type="button" class="btn-danger" onclick="deleteRole()">Delete Role</button>
+                {% endif %}
                 {{ form.submit(class="btn-primary", value=submit_text) }}
             </div>
         </form>
     </div>
 </div>
+
+{% if role %}
+<form id="deleteRoleForm" action="{{ url_for('companies.delete_role', company_id=company.id, role_id=role.id) }}" method="POST" style="display:none;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+</form>
+<script>
+function deleteRole() {
+    if(confirm('Are you sure you want to delete this role? Users assigned to this role may lose access.')) {
+        document.getElementById('deleteRoleForm').submit();
+    }
+}
+</script>
+{% endif %}
 {% endblock %}

@@ -213,6 +213,10 @@ def upload_company_file(company_id):
         
         log_activity(company_id, current_user.email, f"Uploaded file: {original_filename}")
         flash(f'File {original_filename} uploaded to company!', 'success')
+    else:
+        # If form validation fails, show the error
+        if form.file.errors:
+            flash(str(form.file.errors[0]), 'danger')
     return redirect(url_for('companies.company_files', company_id=company_id))
 
 @companies_bp.route('/<int:company_id>/download/<int:file_id>')
@@ -223,33 +227,43 @@ def download_company_file(company_id, file_id):
         flash("Access Denied", "danger")
         return redirect(url_for('companies.company_files', company_id=company_id))
     
-    file_record = File.query.get_or_404(file_id)
-    if file_record.company_id != company_id:
-        flash("File not found in this company.", "danger")
+    try:
+        file_record = File.query.get_or_404(file_id)
+        if file_record.company_id != company_id:
+            flash("File not found in this company.", "danger")
+            return redirect(url_for('companies.company_files', company_id=company_id))
+        
+        # Read encrypted file
+        file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], file_record.encrypted_name)
+        if not os.path.exists(file_path):
+            flash("File not found on server.", "danger")
+            return redirect(url_for('companies.company_files', company_id=company_id))
+        
+        with open(file_path, 'rb') as f:
+            encrypted_data = f.read()
+        
+        # Decrypt
+        decrypted_data = decrypt_file_data(
+            encrypted_data, 
+            file_record.encrypted_aes_key, 
+            file_record.iv, 
+            current_user.rsa_private_key
+        )
+        
+        log_activity(company_id, current_user.email, f"Downloaded file: {file_record.filename}")
+        
+        # Create a BytesIO object fresh for this request
+        file_stream = io.BytesIO(decrypted_data)
+        
+        return send_file(
+            file_stream,
+            download_name=file_record.filename,
+            as_attachment=True,
+            mimetype='application/octet-stream'
+        )
+    except Exception as e:
+        flash(f"Error downloading file: {str(e)}", "danger")
         return redirect(url_for('companies.company_files', company_id=company_id))
-    
-    # Read encrypted file
-    file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], file_record.encrypted_name)
-    if not os.path.exists(file_path):
-        flash("File not found on server.", "danger")
-        return redirect(url_for('companies.company_files', company_id=company_id))
-    with open(file_path, 'rb') as f:
-        encrypted_data = f.read()
-    
-    # Decrypt
-    decrypted_data = decrypt_file_data(
-        encrypted_data, 
-        file_record.encrypted_aes_key, 
-        file_record.iv, 
-        current_user.rsa_private_key
-    )
-    
-    log_activity(company_id, current_user.email, f"Downloaded file: {file_record.filename}")
-    return send_file(
-        io.BytesIO(decrypted_data),
-        download_name=file_record.filename,
-        as_attachment=True
-    )
 
 @companies_bp.route('/<int:company_id>/delete/<int:file_id>', methods=['POST'])
 @login_required
@@ -349,6 +363,41 @@ def edit_role_config(company_id, role_id):
     form.perm_add_users.data = role.perm_add_users
     
     return render_template('companies/role_config.html', company=company, form=form, role=role, submit_text="Update Role", companies=get_user_companies())
+
+@companies_bp.route('/<int:company_id>/roles/delete/<int:role_id>', methods=['POST'])
+@login_required
+def delete_role(company_id, role_id):
+    company = Company.query.get_or_404(company_id)
+    if not has_permission(current_user, company_id, 'perm_manage_roles'):
+        flash("You don't have permission to manage roles.", "danger")
+        return redirect(url_for('companies.company_roles', company_id=company_id))
+    
+    # Validate CSRF token
+    from flask_wtf.csrf import validate_csrf
+    try:
+        validate_csrf(request.form.get('csrf_token'))
+    except Exception as e:
+        flash("CSRF validation failed.", "danger")
+        return redirect(url_for('companies.company_roles', company_id=company_id))
+    
+    role = Role.query.get_or_404(role_id)
+    if role.company_id != company_id:
+        flash("Role not found.", "danger")
+        return redirect(url_for('companies.company_roles', company_id=company_id))
+    
+    # Check if role is assigned to any users
+    from sqlalchemy import select
+    users_with_role = db.session.execute(select(memberships).where(memberships.c.role_id == role_id)).all()
+    if users_with_role:
+        flash("Cannot delete a role that is assigned to users. Please reassign them first.", "danger")
+        return redirect(url_for('companies.company_roles', company_id=company_id))
+    
+    role_name = role.name
+    db.session.delete(role)
+    db.session.commit()
+    log_activity(company_id, current_user.email, f"Deleted role: {role_name}")
+    flash("Role deleted successfully.", "success")
+    return redirect(url_for('companies.company_roles', company_id=company_id))
 
 @companies_bp.route('/<int:company_id>/logs')
 @login_required
