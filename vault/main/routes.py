@@ -105,32 +105,43 @@ def upload_file():
 @main_bp.route("/download/<int:file_id>")
 @login_required
 def download_file(file_id):
-    file_record = File.query.get_or_404(file_id)
-    
-    # Check ownership
-    if file_record.user_id != current_user.id:
-        flash("Unauthorized access!", "danger")
+    try:
+        file_record = File.query.get_or_404(file_id)
+        
+        # Check ownership
+        if file_record.user_id != current_user.id:
+            flash("Unauthorized access!", "danger")
+            return redirect(url_for('main.dashboard'))
+        
+        # Read encrypted file from disk
+        file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], file_record.encrypted_name)
+        if not os.path.exists(file_path):
+            flash("File not found on server.", "danger")
+            return redirect(url_for('main.dashboard'))
+        
+        with open(file_path, 'rb') as f:
+            encrypted_data = f.read()
+        
+        # Decrypt using User's Private Key
+        decrypted_data = decrypt_file_data(
+            encrypted_data, 
+            file_record.encrypted_aes_key, 
+            file_record.iv, 
+            current_user.rsa_private_key
+        )
+        
+        # Send back to user with fresh BytesIO object
+        file_stream = io.BytesIO(decrypted_data)
+        
+        return send_file(
+            file_stream,
+            download_name=file_record.filename,
+            as_attachment=True,
+            mimetype='application/octet-stream'
+        )
+    except Exception as e:
+        flash(f"Error downloading file: {str(e)}", "danger")
         return redirect(url_for('main.dashboard'))
-    
-    # 1. Read encrypted file from disk
-    file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], file_record.encrypted_name)
-    with open(file_path, 'rb') as f:
-        encrypted_data = f.read()
-    
-    # 2. Decrypt using User's Private Key
-    decrypted_data = decrypt_file_data(
-        encrypted_data, 
-        file_record.encrypted_aes_key, 
-        file_record.iv, 
-        current_user.rsa_private_key
-    )
-    
-    # 3. Send back to user
-    return send_file(
-        io.BytesIO(decrypted_data),
-        download_name=file_record.filename,
-        as_attachment=True
-    )
 
 @main_bp.route('/file/delete/<int:file_id>', methods=['POST'])
 @login_required
