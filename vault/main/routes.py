@@ -69,7 +69,14 @@ def upload_file():
     if form.validate_on_submit():
         file_storage = form.file.data
         original_filename = file_storage.filename
-        
+        # Validate extension (defensive)
+        _, ext = os.path.splitext(original_filename)
+        ext = ext.lower().lstrip('.')
+        allowed = {'pdf', 'txt', 'docx', 'png', 'jpg', 'jpeg'}
+        if ext not in allowed:
+            flash('File type not allowed. Allowed: PDF, TXT, DOCX, PNG, JPG', 'danger')
+            return redirect(url_for('main.dashboard'))
+
         # 1. Read file and Encrypt
         file_content = file_storage.read()
         encrypted_data, aes_key, iv = encrypt_file_data(file_content, current_user.rsa_public_key)
