@@ -65,7 +65,12 @@
 
 .form-file {
     color: #94a3b8;
-    font-size: 0.9rem;
+    width: 100% !important;
+    padding: 12px;
+    background: #111827;
+    border: 1px solid #374151;
+    border-radius: 8px;
+    display: block;
 }
 
 /* Footer & Buttons */
