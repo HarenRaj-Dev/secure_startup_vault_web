@@ -6,15 +6,19 @@ Flask-SQLAlchemy==2.5.1
 Flask-Migrate==4.0.5
 
 # Security and Cryptography
-cryptography==41.0.5
+cryptography>=42.0.0
 Werkzeug==3.0.1
 
 # Database
 SQLAlchemy==1.4.51
-psycopg2-binary==2.9.9
+psycopg2-binary
 
 # Validation
 email-validator>=2.0
 
 # web server
 gunicorn==21.2.0
+
+# Email
+Flask-Mail==0.10.0
+python-dotenv==1.0.1

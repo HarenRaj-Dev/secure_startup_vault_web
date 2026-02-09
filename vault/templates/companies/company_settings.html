@@ -8,19 +8,19 @@
 
     <div class="company-navbar">
         {% if company.id %}
-            <a href="{{ url_for('companies.company_files', company_id=company.id) }}">Files</a>
-            <a href="{{ url_for('companies.company_users', company_id=company.id) }}">Users</a>    
-            <a href="{{ url_for('companies.company_roles', company_id=company.id) }}">Roles</a>
-            <a href="{{ url_for('companies.company_logs', company_id=company.id) }}">Activity Logs</a>
-            <a href="{{ url_for('companies.company_settings', company_id=company.id) }}" class="active">Settings</a>
+        <a href="{{ url_for('companies.company_files', company_id=company.id) }}">Files</a>
+        <a href="{{ url_for('companies.company_users', company_id=company.id) }}">Users</a>
+        <a href="{{ url_for('companies.company_roles', company_id=company.id) }}">Roles</a>
+        <a href="{{ url_for('companies.company_logs', company_id=company.id) }}">Activity Logs</a>
+        <a href="{{ url_for('companies.company_settings', company_id=company.id) }}" class="active">Settings</a>
         {% else %}
-            <span style="color: #6b7280;">Complete setup to enable tabs</span>
+        <span style="color: #6b7280;">Complete setup to enable tabs</span>
         {% endif %}
     </div>
 
     <div class="tab-content">
         <div class="settings-card">
-            <form method="POST" enctype="multipart/form-data">
+            <form method="POST" enctype="multipart/form-data" id="settingsForm">
                 {{ form.hidden_tag() }}
                 <div class="form-group">
                     <label>Company Name</label>
@@ -34,30 +34,133 @@
                     <label>Update Logo</label>
                     {{ form.logo(class="form-file") }}
                 </div>
-                
+
                 <div class="settings-footer">
-                    <button type="submit" class="btn-primary">Save Changes</button>
+                    <!-- Changed to type="button" to trigger modal -->
+                    <button type="button" class="btn-primary" onclick="openPasswordModal('save')">Save Changes</button>
                 </div>
+
+                <!-- PASSWORD CONFIRMATION MODAL -->
+                <div id="passwordModal" class="modal-overlay">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3 id="modalTitle" class="modal-title">Security Check</h3>
+                            <p style="color: #9ca3af; font-size: 0.9rem;">Please enter your login password to confirm
+                                this action.</p>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label>Your Password</label>
+                                {{ form.verify_password(class="form-input", placeholder="Enter your login password") }}
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn-cancel" onclick="closePasswordModal()">Cancel</button>
+                            <button type="button" class="btn-primary" id="modalConfirmBtn"
+                                onclick="confirmAction()">Confirm</button>
+                        </div>
+                    </div>
+                </div>
+
             </form>
+
             <div class="settings-footer">
                 {% if company.logo and company.logo != 'logo.svg' %}
-                <form action="{{ url_for('companies.remove_logo', company_id=company.id) }}" method="POST" class="remove-logo-form">
+                <form action="{{ url_for('companies.remove_logo', company_id=company.id) }}" method="POST"
+                    id="removeLogoForm" class="remove-logo-form">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                    <button type="submit" class="btn-secondary" onclick="return confirm('Are you sure you want to remove the company logo?')">Remove Logo</button>
+                    <input type="hidden" name="verify_password" id="removeLogoPassword">
+                    <button type="button" class="btn-secondary" onclick="openPasswordModal('remove')">Remove
+                        Logo</button>
                 </form>
                 {% endif %}
             </div>
             {% if company.id %}
             <div class="settings-footer">
-                <form action="{{ url_for('companies.delete_company', company_id=company.id) }}" method="POST">
+                <form action="{{ url_for('companies.delete_company', company_id=company.id) }}" method="POST"
+                    id="deleteCompanyForm">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                    <button type="submit" class="btn-danger" onclick="return confirmDeleteCompany()">Delete Company</button>
+                    <input type="hidden" name="verify_password" id="deleteCompanyPassword">
+                    <button type="button" class="btn-danger" onclick="openPasswordModal('delete')">Delete
+                        Company</button>
                 </form>
             </div>
             {% endif %}
         </div>
     </div>
 </div>
+
+<script>
+    let currentAction = 'save';
+
+    function openPasswordModal(action) {
+        currentAction = action;
+        const modal = document.getElementById('passwordModal');
+        const title = document.getElementById('modalTitle');
+        const confirmBtn = document.getElementById('modalConfirmBtn');
+        const passInput = document.querySelector('#passwordModal input[type="password"]');
+
+        // Reset input
+        passInput.value = '';
+
+        if (action === 'save') {
+            title.innerText = "Confirm Settings Update";
+            confirmBtn.innerText = "Confirm & Save";
+            confirmBtn.className = "btn-primary";
+        } else if (action === 'remove') {
+            title.innerText = "Confirm Logo Removal";
+            confirmBtn.innerText = "Refove Logo"; // Typo prevention, user likely ignores
+            confirmBtn.innerText = "Remove";
+            confirmBtn.className = "btn-secondary";
+        } else if (action === 'delete') {
+            title.innerText = "Delete Company?";
+            confirmBtn.innerText = "DELETE PERMANENTLY";
+            confirmBtn.className = "btn-danger";
+        }
+
+        modal.style.display = 'flex';
+        // Focus the password field
+        setTimeout(() => {
+            passInput.focus();
+        }, 100);
+    }
+
+    function closePasswordModal() {
+        document.getElementById('passwordModal').style.display = 'none';
+        currentAction = 'save';
+    }
+
+    function confirmAction() {
+        const passInput = document.querySelector('#passwordModal input[type="password"]');
+        const password = passInput.value;
+
+        if (!password) {
+            alert("Please enter your password.");
+            return;
+        }
+
+        if (currentAction === 'save') {
+            // Field is already part of settingsForm, just submit
+            document.getElementById('settingsForm').submit();
+        } else if (currentAction === 'remove') {
+            document.getElementById('removeLogoPassword').value = password;
+            document.getElementById('removeLogoForm').submit();
+        } else if (currentAction === 'delete') {
+            document.getElementById('deleteCompanyPassword').value = password;
+            document.getElementById('deleteCompanyForm').submit();
+        }
+
+        closePasswordModal();
+    }
+
+    // Close modal if clicking outside
+    window.onclick = function (event) {
+        const modal = document.getElementById('passwordModal');
+        if (event.target == modal) {
+            closePasswordModal();
+        }
+    }
+</script>
 {% endblock %}
 
 {% block scripts %}

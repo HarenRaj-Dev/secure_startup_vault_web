@@ -1,4 +1,14 @@
+import os
+import sys
+
+# Ensure the project root is in the Python path
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+
 from vault import create_app
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Create the app instance using the factory pattern
 app = create_app()

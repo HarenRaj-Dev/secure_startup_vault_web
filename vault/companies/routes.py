@@ -69,11 +69,22 @@ def company_settings(company_id):
         return redirect(url_for('companies.company_files', company_id=company_id))
     
     form = CompanyForm()
-    form.name.data = company.name
-    form.password.data = company.password
+    
+    if request.method == 'GET':
+        form.name.data = company.name
+        form.password.data = company.password
+
     if form.validate_on_submit():
+        # SECURITY CHECK: Verify user's password before allowing changes
+        verify_pass = form.verify_password.data
+        from werkzeug.security import check_password_hash
+        if not check_password_hash(current_user.password, verify_pass):
+            flash("Incorrect password. Changes not saved.", "danger")
+            return redirect(url_for('companies.company_settings', company_id=company_id))
+
         company.name = form.name.data
         company.password = form.password.data
+        
         if form.logo.data:
             logo_file = form.logo.data
             raw_name = secure_filename(logo_file.filename)
@@ -82,10 +93,22 @@ def company_settings(company_id):
             os.makedirs(logos_dir, exist_ok=True)
             logo_path = os.path.join(logos_dir, logo_filename)
             logo_file.save(logo_path)
+            # Remove old logo if it exists and isn't default
+            if company.logo and company.logo != 'logo.svg':
+                old_logo_path = os.path.join(current_app.config['UPLOAD_FOLDER'], company.logo)
+                if os.path.exists(old_logo_path):
+                    try:
+                        os.remove(old_logo_path)
+                    except:
+                        pass
+            
             # store relative path under uploads so template can detect
             company.logo = os.path.join('logos', logo_filename)
+            
         db.session.commit()
-        flash("Company settings updated!", "success")
+        from vault.companies.services import log_activity
+        log_activity(company_id, current_user.email, "Updated company settings")
+        flash("Company settings updated successfully!", "success")
         return redirect(url_for('companies.company_settings', company_id=company_id))
     
     return render_template('companies/company_settings.html', company=company, form=form, csrf_token=generate_csrf(), companies=get_user_companies())
@@ -98,6 +121,13 @@ def delete_company(company_id):
         flash("Only the owner can delete the company.", "danger")
         return redirect(url_for('companies.company_settings', company_id=company_id))
     
+    # SECURITY CHECK
+    verify_pass = request.form.get('verify_password')
+    from werkzeug.security import check_password_hash
+    if not verify_pass or not check_password_hash(current_user.password, verify_pass):
+        flash("Incorrect password. Company deletion aborted.", "danger")
+        return redirect(url_for('companies.company_settings', company_id=company_id))
+
     # Delete associated memberships first
     from sqlalchemy import delete
     db.session.execute(delete(memberships).where(memberships.c.company_id == company_id))
@@ -125,6 +155,13 @@ def remove_logo(company_id):
         validate_csrf(request.form.get('csrf_token'))
     except Exception as e:
         flash("CSRF validation failed.", "danger")
+        return redirect(url_for('companies.company_settings', company_id=company_id))
+
+    # SECURITY CHECK
+    verify_pass = request.form.get('verify_password')
+    from werkzeug.security import check_password_hash
+    if not verify_pass or not check_password_hash(current_user.password, verify_pass):
+        flash("Incorrect password. Logo removal aborted.", "danger")
         return redirect(url_for('companies.company_settings', company_id=company_id))
     
     if company.logo and company.logo != 'logo.svg':

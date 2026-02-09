@@ -21,6 +21,10 @@ class User(UserMixin, db.Model):
     rsa_private_key = db.Column(db.LargeBinary)  # Encrypted RSA Private Key
     rsa_public_key = db.Column(db.LargeBinary)   # RSA Public Key
     
+    # OTP Fields
+    otp_code = db.Column(db.String(6))
+    otp_expiry = db.Column(db.DateTime)
+    
     owned_companies = db.relationship('Company', backref='owner', lazy=True)
     files = db.relationship('File', backref='owner', lazy=True)
 

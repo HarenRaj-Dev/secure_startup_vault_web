@@ -1,7 +1,7 @@
 import os
 from flask import Flask
 # Added 'csrf' to the import list
-from .extensions import db, login_manager, main_bp, csrf 
+from .extensions import db, login_manager, main_bp, csrf, mail 
 
 def create_app():
     app = Flask(__name__, instance_relative_config=True)
@@ -23,10 +23,22 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     # -----------------------------------
 
-    # Initialize Extensions
     db.init_app(app)
     login_manager.init_app(app)
-    csrf.init_app(app)  # <--- Initializes the CSRF protection
+    csrf.init_app(app)
+    mail.init_app(app)
+    
+    # Initialize Migrate
+    from .extensions import migrate
+    migrate.init_app(app, db)
+
+    # --- EMAIL CONFIGURATION ---
+    app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.googlemail.com')
+    app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 587))
+    app.config['MAIL_USE_TLS'] = os.environ.get('MAIL_USE_TLS', 'true').lower() in ['true', 'on', '1']
+    app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+    app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+    # ---------------------------
     
     login_manager.login_view = 'auth.login'
     login_manager.login_message_category = 'info'

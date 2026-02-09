@@ -6,8 +6,9 @@ from wtforms.validators import DataRequired, Length
 class CompanyForm(FlaskForm):
     name = StringField('Company Name', validators=[DataRequired(), Length(max=100)])
     password = PasswordField('Company Password', validators=[DataRequired()])
+    verify_password = PasswordField('Verify Your Password', validators=[DataRequired()])
     logo = FileField('Company Logo')
-    submit = SubmitField('Create Company')
+    submit = SubmitField('Save Changes')
 
 class RoleForm(FlaskForm):
     name = StringField('Role Name', validators=[DataRequired()])

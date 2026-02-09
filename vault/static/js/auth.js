@@ -1,26 +1,45 @@
 function toggleAuth() {
     const subtitle = document.getElementById('auth-subtitle');
-    const toggleMsg = document.getElementById('toggle-msg');
-    const authForm = document.querySelector('form');
+    const toggleLink = document.getElementById('toggle-msg');
+    const authForm = document.getElementById('auth-form');
+    const submitBtn = document.getElementById('submit-btn');
     const title = document.querySelector('.auth-header h2');
+    const confirmGroup = document.getElementById('confirm-pass-group');
+    const confirmInput = document.getElementById('confirm_field');
 
-    if (title.innerText === "SECURE STARTUP VAULT") {
-        title.innerText = "CREATE ACCOUNT";
-        subtitle.innerText = "Join the most secure vault for your startup.";
-        toggleMsg.innerHTML = 'Already have an account? <a href="javascript:void(0)" onclick="toggleAuth()">Login</a>';
-        
-        // Change form action to register
-        authForm.action = "/register";
+    // Check if we are currently in Login mode (default)
+    const isLoginMode = submitBtn.innerText.trim() === "Login";
+
+    if (isLoginMode) {
+        // Switch to Register Mode
+        if (title) title.innerText = "CREATE ACCOUNT";
+        if (subtitle) subtitle.innerText = "Join the most secure vault for your startup.";
+
+        // Update Link
+        if (toggleLink) {
+            toggleLink.innerHTML = 'Already have an account? <a href="javascript:void(0)" onclick="toggleAuth()">Login</a>';
+        }
+
+        // Update Form
+        if (authForm) authForm.action = "/register";
+        if (submitBtn) submitBtn.innerText = "Create Account";
+
+        // Show Confirm Password
+        if (confirmGroup) {
+            confirmGroup.style.display = "block";
+            if (confirmInput) confirmInput.setAttribute('required', 'required');
+        }
+
     } else {
-        location.reload(); // Returns to default Login state
+        // Switch back to Login Mode
+        location.reload();
     }
 }
 
 function togglePassword(inputId) {
     const input = document.getElementById(inputId);
-    // Find the span that was clicked
-    const btn = event.target; 
-    
+    const btn = event.currentTarget || event.target; // handle both click targets
+
     if (input.type === "password") {
         input.type = "text";
         btn.innerText = "HIDE";
