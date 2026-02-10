@@ -28,23 +28,28 @@ def login():
             otp = ''.join(random.choices(string.digits, k=6))
             user.otp_code = otp
             user.otp_expiry = datetime.now() + timedelta(minutes=10)
-            db.session.commit()
             
-            # Send Email
             try:
+                db.session.commit()
+                
+                # Send Email
                 send_otp_email(user)
                 flash('OTP sent to your email. Please verify.', 'info')
-            except Exception as e:
-                flash(f'Error sending email: {e}', 'danger')
-            
-            # ALWAYS PRINT OTP FOR DEBUGGING (Development only)
-            print(f"\n{'='*30}")
-            print(f"DEBUG OTP: {otp}")
-            print(f"{'='*30}\n") 
+                
+                # ALWAYS PRINT OTP FOR DEBUGGING (Development only)
+                print(f"\n{'='*30}")
+                print(f"DEBUG OTP: {otp}")
+                print(f"{'='*30}\n") 
 
-            # Store user ID in session for the next step
-            session['pre_2fa_user_id'] = user.id
-            return redirect(url_for('auth.verify_otp'))
+                # Store user ID in session for the next step
+                session['pre_2fa_user_id'] = user.id
+                return redirect(url_for('auth.verify_otp'))
+
+            except Exception as e:
+                db.session.rollback()
+                print(f"LOGIN ERROR: {e}") # This will show in Vercel logs
+                flash(f'An error occurred: {str(e)}', 'danger')
+                return render_template('auth/login.html', form=form)
             
         else:
             flash('Login Unsuccessful. Please check email and password', 'danger')
