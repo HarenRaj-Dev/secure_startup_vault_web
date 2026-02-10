@@ -5,7 +5,10 @@ from vault.extensions import login_manager
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    try:
+        return User.query.get(int(user_id))
+    except Exception:
+        return None
 
 # Junction table for User-Company Membership
 memberships = db.Table('memberships',

@@ -22,14 +22,14 @@ def login():
         email = request.form.get('email')
         password = request.form.get('password')
         
-        user = User.query.filter_by(email=email).first()
-        if user and check_password_hash(user.password, password):
-            # Generate OTP
-            otp = ''.join(random.choices(string.digits, k=6))
-            user.otp_code = otp
-            user.otp_expiry = datetime.now() + timedelta(minutes=10)
-            
-            try:
+        try:
+            user = User.query.filter_by(email=email).first()
+            if user and check_password_hash(user.password, password):
+                # Generate OTP
+                otp = ''.join(random.choices(string.digits, k=6))
+                user.otp_code = otp
+                user.otp_expiry = datetime.now() + timedelta(minutes=10)
+                
                 db.session.commit()
                 
                 # Send Email
@@ -44,15 +44,14 @@ def login():
                 # Store user ID in session for the next step
                 session['pre_2fa_user_id'] = user.id
                 return redirect(url_for('auth.verify_otp'))
+            else:
+                flash('Login Unsuccessful. Please check email and password', 'danger')
 
-            except Exception as e:
-                db.session.rollback()
-                print(f"LOGIN ERROR: {e}") # This will show in Vercel logs
-                flash(f'An error occurred: {str(e)}', 'danger')
-                return render_template('auth/login.html', form=form)
-            
-        else:
-            flash('Login Unsuccessful. Please check email and password', 'danger')
+        except Exception as e:
+            db.session.rollback()
+            print(f"LOGIN ERROR: {e}") # This will show in Vercel logs
+            flash(f'An error occurred: {str(e)}', 'danger')
+            return render_template('auth/login.html', form=form)
             
     return render_template('auth/login.html', form=form)
 
@@ -96,39 +95,46 @@ def register():
         email = request.form.get('email')
         password = request.form.get('password')
         
-        # Validation
-        email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-        if not re.match(email_regex, email):
-            flash('Invalid email address format.', 'danger')
-            return render_template('auth/login.html', form=RegistrationForm())
+        try:
+            # Validation
+            email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+            if not re.match(email_regex, email):
+                flash('Invalid email address format.', 'danger')
+                return render_template('auth/login.html', form=RegistrationForm())
 
-        if len(password) < 8:
-            flash('Password must be at least 8 characters long.', 'danger')
-            return render_template('auth/login.html', form=RegistrationForm())
+            if len(password) < 8:
+                flash('Password must be at least 8 characters long.', 'danger')
+                return render_template('auth/login.html', form=RegistrationForm())
+                
+            if not re.search(r'[a-zA-Z]', password) or not re.search(r'[0-9]', password):
+                 flash('Password must contain both letters and numbers.', 'danger')
+                 return render_template('auth/login.html', form=RegistrationForm())
+
+            existing_user = User.query.filter_by(email=email).first()
+            if existing_user:
+                 flash('Email already exists.', 'danger')
+                 return render_template('auth/login.html', form=RegistrationForm())
+
+            from vault.crypto_utils import generate_user_keys
+            priv_key, pub_key = generate_user_keys()
             
-        if not re.search(r'[a-zA-Z]', password) or not re.search(r'[0-9]', password):
-             flash('Password must contain both letters and numbers.', 'danger')
-             return render_template('auth/login.html', form=RegistrationForm())
+            hashed_password = generate_password_hash(password)
+            new_user = User(
+                email=email, 
+                password=hashed_password,
+                rsa_private_key=priv_key,
+                rsa_public_key=pub_key
+            )
+            db.session.add(new_user)
+            db.session.commit()
+            flash('Account created! Please login.', 'success')
+            return redirect(url_for('auth.login'))
 
-        existing_user = User.query.filter_by(email=email).first()
-        if existing_user:
-             flash('Email already exists.', 'danger')
-             return render_template('auth/login.html', form=RegistrationForm())
-
-        from vault.crypto_utils import generate_user_keys
-        priv_key, pub_key = generate_user_keys()
-        
-        hashed_password = generate_password_hash(password)
-        new_user = User(
-            email=email, 
-            password=hashed_password,
-            rsa_private_key=priv_key,
-            rsa_public_key=pub_key
-        )
-        db.session.add(new_user)
-        db.session.commit()
-        flash('Account created! Please login.', 'success')
-        return redirect(url_for('auth.login'))
+        except Exception as e:
+            db.session.rollback()
+            print(f"REGISTER ERROR: {e}")
+            flash(f'An error occurred during registration: {str(e)}', 'danger')
+            return render_template('auth/login.html', form=RegistrationForm())
         
     return render_template('auth/login.html', form=RegistrationForm())
 
