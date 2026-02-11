@@ -1,10 +1,10 @@
 from flask_mail import Message
 from vault import mail
 from flask import url_for, current_app
-from threading import Thread
+
 import smtplib
 
-def send_async_email(app, msg):
+def send_email_sync(app, msg):
     with app.app_context():
         smtp_server = app.config.get('MAIL_SERVER')
         smtp_port = app.config.get('MAIL_PORT')
@@ -51,5 +51,8 @@ def send_otp_email(user):
 This OTP is valid for 10 minutes.
 If you did not request this, please ignore this email.
 '''
-    # Send asynchronously
-    Thread(target=send_async_email, args=(current_app._get_current_object(), msg)).start()
+    # Send synchronously (blocking) to ensure delivery in serverless environments
+    try:
+        send_email_sync(current_app._get_current_object(), msg)
+    except Exception as e:
+        print(f"FAILED to send OTP email: {e}")
