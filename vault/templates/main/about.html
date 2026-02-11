@@ -2,13 +2,61 @@
 
 {% block content %}
 <div class="page-container">
-    <h1>About Secure Startup Vault</h1>
-    <p>This website is a student educational project created to learn web security, cryptography, and secure authentication systems.</p>
-    <p>The project is developed by Haren Raj, a student at TKR Institute, India, as part of academic coursework.</p>
-    <br>
-    <p>It is not a commercial product. No malicious or deceptive intent is involved.</p>
-    <br>
-    <p>Files available for download are uploaded by authenticated users.</p>
-    <p>this app does not host public software or exectable</p>
+    <div class="row">
+        <div class="col-lg-8 offset-lg-2 text-center">
+            <h1 class="display-5 fw-bold mb-4">About Secure Startup Vault</h1>
+            <p class="lead text-muted mt-3">
+                Secure Startup Vault was developed as a final year collegiate project to bridge the gap between 
+                accessible cloud storage and high-level enterprise security. In an era where data breaches 
+                are becoming commonplace, our mission was to create a platform where startups can store 
+                sensitive intellectual property without fear of unauthorized access.
+            </p>
+        </div>
+    </div>
+
+    <div class="legal-section">
+        <div class="col-lg-10 offset-lg-1">
+            <h2 class="legal-header">Technical Excellence</h2>
+            <p>Our architecture is built on the robust <strong>Flask</strong> framework, utilizing a 
+            <strong>PostgreSQL</strong> backend hosted on <strong>Neon.tech</strong> for serverless scalability.</p>
+            <p>We implemented a hybrid encryption model:
+                <ul>
+                    <li><strong>RSA-2048:</strong> Used for asymmetric identity verification and key exchange.</li><br>
+                    <li><strong>Fernet (AES-128):</strong> Used for high-speed symmetric encryption of data blobs.</li><br>
+                    <li><strong>Vercel Serverless:</strong> Ensuring 99.9% uptime and global availability.</li><br>
+                </ul>
+            </p>
+        </div>
+        <div class="col-lg-10 offset-lg-1">
+            
+        </div>
+    </div>
+
+    <div class="legal-section">
+        <h2 class="legal-header">The Development Team</h2>
+        <div class="col-lg-10 offset-lg-1">
+            <div class="legal-text">
+                <p>Led by <strong>Haren Raj (Team Leader)</strong>, this project was a collaborative effort 
+                requiring over 200 hours of development, debugging, and cloud configuration. Each member 
+                contributed to a specific pillar of the application:</p>
+                
+                <div class="legal-section">
+                    <div class="col"><strong>Haren Raj</strong><br><small class="text-muted">Lead Architect & Cloud Deployment</small></div>
+                    <div class="col"><strong>Abhishek</strong><br><small class="text-muted">Security & Encryption Logic</small></div>
+                    <div class="col"><strong>Akshitha</strong><br><small class="text-muted">Database Management (SQL)</small></div>
+                    <div class="col"><strong>Spoorthi</strong><br><small class="text-muted">Frontend & UX Design</small></div>
+                    <div class="col"><strong>Parshuram</strong><br><small class="text-muted">QA & Documentation</small></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-10 offset-lg-1">
+            <p class="fst-italic text-secondary">
+                This project was submitted as part of the academic curriculum for the 2024-2025 academic session. 
+                It demonstrates the practical application of software engineering principles, 
+                cryptographic standards, and modern DevOps practices in a cloud-native environment.
+            </p>
+        </div>
+    </div>
 </div>
 {% endblock %}

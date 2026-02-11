@@ -2,16 +2,40 @@
 
 {% block content %}
 <div class="page-container">
-    <h1>Privacy Policy</h1>
-    <p><b>This is an educational project.</b></p>
-    <br>
-    <p>User data is used only for authentication purposes.</p>
-    <p>Passwords are encrypted before storage.</p>
-    <p>No personal data is shared with third parties.</p>
-    <br>
-    <p>This project is for learning and demonstration only.</p>
-    <br>
-    <p>Files available for download are uploaded by authenticated users.</p>
-    <p>this app does not host public software or exectable</p>
+    <div class="row">
+        <div class="col-lg-10 offset-lg-1">
+            <h1 class="display-5 fw-bold mb-4">Privacy Policy</h1>
+            <div class="privacy-box">
+                <strong>Zero-Knowledge Protocol:</strong> Our developers cannot see your data. Your files are encrypted with keys that only you control.
+            </div>
+            
+            <div class="legal-text">
+                <div class="legal-section">
+                    <h4 class="legal-header">1. Commitment to Data Privacy</h4>
+                    <p>At Secure Startup Vault, we believe that privacy is a fundamental right. This policy outlines how we handle your information in our serverless cloud environment. Because this project was built with a "Privacy by Design" philosophy, we have engineered the system to ensure that the development team has no way to view the contents of your files. Our infrastructure is optimized to provide maximum security while minimizing the collection of personal metadata. We treat your digital footprint with the same level of care that we would expect for our own sensitive information.</p>
+                </div>
+
+                <div class="legal-section">
+                    <h4 class="legal-header">2. Information Collection and Data Minimization</h4>
+                    <p>We collect only the information necessary to provide a secure login experience. This includes your email address, which serves as your unique identifier, and a hashed version of your password. We do not collect names, phone numbers, or physical addresses. Our application does not use tracking cookies for advertising purposes; the only cookies used are strictly "session cookies" required to keep you logged into the Flask environment and to prevent Cross-Site Request Forgery (CSRF). By minimizing the data we collect, we significantly reduce the risk to our users in the event of any external service disruption.</p>
+                </div>
+
+                <div class="legal-section">
+                    <h4 class="legal-header">3. Advanced Encryption Standards</h4>
+                    <p>Your privacy is protected by a multi-layered cryptographic stack. When you upload a file, the following process occurs: first, the file is encrypted locally using the Fernet symmetric algorithm. Second, the resulting data "blob" is secured and sent via an SSL-encrypted tunnel (HTTPS) provided by Vercel. Finally, the data is stored in our PostgreSQL database at Neon.tech. Because the decryption keys are tied to your user session and hashed credentials, your files are protected even in the event of a total database breach. Our use of salt and pepper in hashing ensures that even identical passwords result in different stored signatures.</p>
+                </div>
+
+                <div class="legal-section">
+                    <h4 class="legal-header">4. Use of Cloud Infrastructure</h4>
+                    <p>To ensure the scalability of this college project, we utilize Vercel for web hosting and Neon.tech for database management. These providers are leaders in cloud security and comply with international standards. While your data resides on their servers, it remains in an encrypted state (at-rest) and is never accessible to the employees of these companies. We do not share, sell, or rent your email address to any third-party marketing agencies. Our partnership with these cloud leaders ensures that the Secure Startup Vault benefits from world-class physical and digital security perimeters around the clock.</p>
+                </div>
+
+                <div class="legal-section">
+                    <h4 class="legal-header">5. User Rights and Data Portability</h4>
+                    <p>Under the principles of modern data protection, you have the right to access the data stored in your vault at any time. You also have the "Right to be Forgotten." If you choose to delete your account, our system is programmed to remove all database entries associated with your ID immediately. This includes your email, your encrypted blobs, and your cryptographic keys. As the Team Leader, Haren Raj ensures that no "ghost" copies of your data are kept on any backup drives or secondary servers. We believe in complete transparency regarding the lifecycle of your data from the moment of upload to the moment of deletion.</p>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

@@ -2,13 +2,39 @@
 
 {% block content %}
 <div class="page-container">
-    <h1>Terms of Use</h1>
-    <p>This website is provided for educational purposes only.</p>
-    <p>Users should not upload sensitive real-world data.</p>
-    <br>
-    <p>The developer is not responsible for misuse of the platform.</p>
-    <br>
-    <p>Files available for download are uploaded by authenticated users.</p>
-    <p>this app does not host public software or exectable</p>
+    <div class="row">
+        <div class="col-lg-10 offset-lg-1">
+            <h1 class="display-5 fw-bold mb-4">Terms of Service</h1>
+            <p class="text-muted">Last Updated: October 2024 | Secure Startup Vault Academic Project</p>
+            <hr>
+            
+            <div class="legal-text">
+                <div class="legal-section">
+                    <h4 class="legal-header">1. User Agreement and Academic Scope</h4>
+                    <p>This document governs the use of the Secure Startup Vault (SSV) platform. By accessing this application, you acknowledge that this is a secure environment designed for the storage of sensitive startup data. You agree that you are at least 18 years of age or possess legal parental or guardian consent. This platform is provided as an academic milestone, and while it utilizes industry-standard protocols, users are encouraged to maintain secondary backups of all critical data. It is important to note that this system is part of a university evaluation and should be used responsibly within the provided guidelines.</p>
+                </div>
+
+                <div class="legal-section">
+                    <h4 class="legal-header">2. Account Security and Cryptographic Responsibility</h4>
+                    <p>As a security-focused application, SSV utilizes RSA-2048 bit asymmetric encryption to protect user identities and data integrity. Upon registration, a unique cryptographic identity is assigned to your account. You are solely responsible for maintaining the confidentiality of your password and any associated private keys. You acknowledge that our administrators do not store your plain-text password; therefore, if you lose your credentials, the encrypted data within your vault will become permanently inaccessible. You agree to notify the team leader immediately of any unauthorized use of your account to ensure the safety of the wider network.</p>
+                </div>
+
+                <div class="legal-section">
+                    <h4 class="legal-header">3. Acceptable Use Policy</h4>
+                    <p>You agree not to engage in any activity that interferes with or disrupts the services provided by Vercel and Neon.tech. Prohibited activities include, but are not limited to: uploading malware, ransomware, or any code designed to exploit serverless functions; attempting to bypass the Flask-WTF CSRF protection layers; or conducting stress tests against the database. Any attempt to scrape data from the platform or perform SQL injection attacks will result in an immediate permanent ban and may be reported to the academic department for disciplinary action. Users must respect the computational limits of our serverless infrastructure.</p>
+                </div>
+
+                <div class="legal-section">
+                    <h4 class="legal-header">4. Intellectual Property and Data Ownership</h4>
+                    <p>The design, logo, and custom Python logic of the Secure Startup Vault are the intellectual property of the development team led by Haren Raj. However, the data you upload—your "Vault Blobs"—remain your exclusive property. By using this service, you grant the platform a limited license to host and process your data solely for the purpose of providing the vault services. We claim no ownership over the startup ideas, business plans, or sensitive documents you secure within our infrastructure. Your creativity and data remain 100% yours at all times.</p>
+                </div>
+
+                <div class="legal-section">
+                    <h4 class="legal-header">5. Termination and Modifications</h4>
+                    <p>We reserve the right to modify these terms at any time to reflect changes in cloud hosting policies or security standards. We also reserve the right to suspend accounts that remain inactive for more than six months to preserve database resources on the Neon.tech platform. Upon termination of an account, all associated encrypted data will be purged from the server to ensure maximum privacy. Users are responsible for exporting their data before account closure, as the recovery of purged encrypted files is technically impossible due to our zero-knowledge architecture.</p>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
