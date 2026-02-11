@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* Premium Landing Page Styles */
+    :root {
+        --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+        --surface-dark: #0f172a;
+        --surface-card: #1e293b;
+        --text-primary: #f8fafc;
+        --text-secondary: #94a3b8;
+    }
+
+    .landing-hero {
+        min-height: 80vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 4rem 1rem;
+        background: radial-gradient(circle at top center, #1e1b4b 0%, #0f172a 100%);
+        color: var(--text-primary);
+    }
+
+    .hero-badge {
+        background: rgba(99, 102, 241, 0.1);
+        color: #818cf8;
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        border: 1px solid rgba(99, 102, 241, 0.2);
+    }
+
+    .hero-title {
+        font-size: 3.5rem;
+        font-weight: 800;
+        line-height: 1.2;
+        margin-bottom: 1.5rem;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        max-width: 800px;
+    }
+
+    .hero-subtitle {
+        font-size: 1.25rem;
+        color: var(--text-secondary);
+        max-width: 600px;
+        margin-bottom: 2.5rem;
+        line-height: 1.6;
+    }
+
+    .cta-group {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .btn-premium {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 0.75rem 2rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: none;
+    }
+
+    .btn-premium:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px -10px rgba(168, 85, 247, 0.5);
+        color: white;
+    }
+
+    .btn-outline-premium {
+        background: transparent;
+        color: var(--text-primary);
+        padding: 0.75rem 2rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        text-decoration: none;
+        border: 1px solid #334155;
+        transition: all 0.2s;
+    }
+
+    .btn-outline-premium:hover {
+        background: #1e293b;
+        border-color: #475569;
+        color: white;
+    }
+
+    /* Features Grid */
+    .features-section {
+        padding: 5rem 1rem;
+        background: var(--surface-dark);
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .feature-card {
+        background: var(--surface-card);
+        padding: 2rem;
+        border-radius: 1rem;
+        border: 1px solid #334155;
+        transition: transform 0.2s;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+        border-color: #6366f1;
+    }
+
+    .feature-icon {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        display: inline-block;
+        padding: 1rem;
+        background: rgba(99, 102, 241, 0.1);
+        border-radius: 0.75rem;
+        color: #818cf8;
+    }
+
+    .feature-title {
+        color: var(--text-primary);
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .feature-desc {
+        color: var(--text-secondary);
+        line-height: 1.5;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2.5rem;
+        }
+    }
+</style>
+
+<div class="landing-hero">
+    <div class="hero-badge">Verifiable Security for Everyone</div>
+    <h1 class="hero-title">Secure Your Startup's Future with Zero-Knowledge Encryption</h1>
+    <p class="hero-subtitle">
+        The Secure Startup Vault ensures your sensitive business documents, intellectual property, and financial records
+        are encrypted before they ever leave your device.
+    </p>
+
+    <div class="cta-group">
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('main.dashboard') }}" class="btn-premium">Go to Dashboard</a>
+        {% else %}
+        <a href="{{ url_for('auth.register') }}" class="btn-premium">Get Started for Free</a>
+        <a href="{{ url_for('auth.login') }}" class="btn-outline-premium">Login</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="features-section">
+    <div class="features-grid">
+        <div class="feature-card">
+            <span class="feature-icon">🔒</span>
+            <h3 class="feature-title">End-to-End Encryption</h3>
+            <p class="feature-desc">
+                Your files are encrypted with RSA-2048 and AES protocols. Not even our developers can access your
+                data—only you hold the keys.
+            </p>
+        </div>
+        <div class="feature-card">
+            <span class="feature-icon">⚡</span>
+            <h3 class="feature-title">Serverless Architecture</h3>
+            <p class="feature-desc">
+                Built on Vercel and Neon.tech (PostgreSQL) for high availability, lightning-fast performance, and robust
+                data persistence.
+            </p>
+        </div>
+        <div class="feature-card">
+            <span class="feature-icon">👥</span>
+            <h3 class="feature-title">Team Collaboration</h3>
+            <p class="feature-desc">
+                Create companies, manage roles, and securely share documents with your team members without compromising
+                security.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -61,11 +61,16 @@ def verify_otp():
         return redirect(url_for('main.dashboard'))
         
     user_id = session.get('pre_2fa_user_id')
+    print(f"\n[DEBUG] verify_otp accessed. Session user_id: {user_id}")
+    
     if not user_id:
+        print("[DEBUG] No user_id in session. Redirecting to login.")
+        flash("Session expired or invalid. Please login to verify OTP.", "warning")
         return redirect(url_for('auth.login'))
         
     user = User.query.get(user_id)
     if not user:
+        print(f"[DEBUG] User {user_id} not found in DB. Redirecting to login.")
         return redirect(url_for('auth.login'))
 
     if request.method == 'POST':
@@ -127,8 +132,30 @@ def register():
             )
             db.session.add(new_user)
             db.session.commit()
-            flash('Account created! Please login.', 'success')
-            return redirect(url_for('auth.login'))
+            
+            # --- START OTP FLOW IMMEDIATELY ---
+            # Generate OTP
+            otp = ''.join(random.choices(string.digits, k=6))
+            new_user.otp_code = otp
+            new_user.otp_expiry = datetime.now() + timedelta(minutes=10)
+            db.session.commit()
+            
+            # Send Email
+            from vault.auth.utils import send_otp_email
+            send_otp_email(new_user)
+            
+            # Debug OTP
+            print(f"\n{'='*30}")
+            print(f"DEBUG OTP (Register): {otp}")
+            print(f"DEBUG New User ID: {new_user.id}")
+            print(f"{'='*30}\n")
+            
+            # Store user ID in session for verify_otp
+            session['pre_2fa_user_id'] = new_user.id
+            session.modified = True # Force session save
+            flash('Account created! OTP sent to your email.', 'info')
+            return redirect(url_for('auth.verify_otp'))
+            # ----------------------------------
 
         except Exception as e:
             db.session.rollback()

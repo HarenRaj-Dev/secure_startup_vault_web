@@ -99,21 +99,27 @@
         const title = document.getElementById('modalTitle');
         const confirmBtn = document.getElementById('modalConfirmBtn');
         const passInput = document.querySelector('#passwordModal input[type="password"]');
+        const passLabel = document.querySelector('#passwordModal label');
 
         // Reset input
         passInput.value = '';
 
         if (action === 'save') {
             title.innerText = "Confirm Settings Update";
+            passLabel.innerText = "Current Company Password";
+            passInput.placeholder = "Enter current company password";
             confirmBtn.innerText = "Confirm & Save";
             confirmBtn.className = "btn-primary";
         } else if (action === 'remove') {
             title.innerText = "Confirm Logo Removal";
-            confirmBtn.innerText = "Refove Logo"; // Typo prevention, user likely ignores
+            passLabel.innerText = "Your Login Password";
+            passInput.placeholder = "Enter your login password";
             confirmBtn.innerText = "Remove";
             confirmBtn.className = "btn-secondary";
         } else if (action === 'delete') {
             title.innerText = "Delete Company?";
+            passLabel.innerText = "Your Login Password";
+            passInput.placeholder = "Enter your login password";
             confirmBtn.innerText = "DELETE PERMANENTLY";
             confirmBtn.className = "btn-danger";
         }
@@ -131,16 +137,22 @@
     }
 
     function confirmAction() {
+        // ... (rest of logic handles submission)
         const passInput = document.querySelector('#passwordModal input[type="password"]');
         const password = passInput.value;
 
         if (!password) {
-            alert("Please enter your password.");
+            alert("Please enter the password.");
             return;
         }
 
         if (currentAction === 'save') {
-            // Field is already part of settingsForm, just submit
+            // For 'save', the modal input needs to be copied to the form's verify_password field
+            // accessing the form field by ID or name
+            const verifyField = document.querySelector('input[name="verify_password"]');
+            if (verifyField) {
+                verifyField.value = password;
+            }
             document.getElementById('settingsForm').submit();
         } else if (currentAction === 'remove') {
             document.getElementById('removeLogoPassword').value = password;

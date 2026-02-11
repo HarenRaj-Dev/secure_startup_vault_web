@@ -29,6 +29,13 @@ def get_user_companies():
 def create_company():
     form = CompanyForm()
     if form.validate_on_submit():
+        # SECURITY CHECK: Verify user's login password before creating company
+        verify_pass = form.verify_password.data
+        from werkzeug.security import check_password_hash
+        if not check_password_hash(current_user.password, verify_pass):
+            flash("Incorrect login password. Company creation aborted.", "danger")
+            return render_template('companies/company_settings.html', form=form, company={'name': 'New Company'}, csrf_token=generate_csrf(), companies=get_user_companies())
+
         new_company = Company(
             name=form.name.data,
             password=form.password.data,
@@ -73,14 +80,19 @@ def company_settings(company_id):
     if request.method == 'GET':
         form.name.data = company.name
         form.password.data = company.password
+        # Clear the verification field for the GET request
+        form.verify_password.data = ''
 
     if form.validate_on_submit():
-        # SECURITY CHECK: Verify user's password before allowing changes
+        # SECURITY CHECK: Verify USER'S LOGIN PASSWORD for sensitive actions?
+        # User requested: "for saving changes it should ask for current company password"
         verify_pass = form.verify_password.data
-        from werkzeug.security import check_password_hash
-        if not check_password_hash(current_user.password, verify_pass):
-            flash("Incorrect password. Changes not saved.", "danger")
-            return redirect(url_for('companies.company_settings', company_id=company_id))
+        
+        # Compare verify_pass with CURRENT COMPANY PASSWORD
+        # Note: company.password is stored in plain text in this implementation
+        if verify_pass != company.password:
+             flash("Incorrect Current Company Password. Changes not saved.", "danger")
+             return redirect(url_for('companies.company_settings', company_id=company_id))
 
         company.name = form.name.data
         company.password = form.password.data

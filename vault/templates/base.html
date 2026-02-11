@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta name="google-site-verification" content="J-3qT1YwTFPaxkWmWikrd2O2Urvds3W9NMAyD9k0r1c" />
     <meta charset="UTF-8">
@@ -12,30 +13,33 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/footers.css') }}">
 </head>
+
 <body>
     {% if current_user.is_authenticated %}
-        {% include 'partials/_vault_sidebar.html' %}
+    {% include 'partials/_vault_sidebar.html' %}
     {% endif %}
 
     <main class="{% if current_user.is_authenticated %}main-shifted{% endif %}">
         {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="flash-message {{ category }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="flash-message {{ category }}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
         {% endwith %}
-        
+
         {% block content %}{% endblock %}
     </main>
 
     <script src="{{ url_for('static', filename='js/vault.js') }}"></script>
-    
+
     {# THIS IS THE MISSING LINK #}
     {% block scripts %}{% endblock %}
-    
+
     <footer class="site-footer">
         <div class="footer-links">
+            <a href="{{ url_for('main.index') }}">Home</a>
+            &nbsp;|&nbsp;
             <a href="{{ url_for('main.about') }}">About</a>
             &nbsp;|&nbsp;
             <a href="{{ url_for('main.privacy') }}">Privacy Policy</a>
@@ -46,4 +50,5 @@
         </div>
     </footer>
 </body>
+
 </html>

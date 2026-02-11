@@ -31,6 +31,9 @@ from vault.crypto_utils import encrypt_file_data, decrypt_file_data
 # (It is now created in __init__.py)
 
 @main_bp.route("/")
+def index():
+    return render_template('main/index.html')
+
 @main_bp.route("/dashboard")
 @login_required
 def dashboard():
