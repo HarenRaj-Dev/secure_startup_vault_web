@@ -36,6 +36,7 @@ class Company(db.Model):
     name = db.Column(db.String(100), nullable=False)
     password = db.Column(db.String(100)) # Company entry password
     logo = db.Column(db.String(100), default='logo.svg')
+    logo_data = db.Column(db.LargeBinary) # Store logo image data in DB
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     
@@ -62,6 +63,7 @@ class File(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     filename = db.Column(db.String(255), nullable=False)
     encrypted_name = db.Column(db.String(255), nullable=False) # Disk name
+    data = db.Column(db.LargeBinary) # Encrypted file content stored in DB
     encrypted_aes_key = db.Column(db.LargeBinary) # AES key encrypted with RSA
     iv = db.Column(db.LargeBinary) # AES Initialization Vector
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))

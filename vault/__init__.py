@@ -62,16 +62,54 @@ def create_app():
         except Exception as e:
             print(f"Table creation skipped or failed: {e}")
 
+    # --- AUTOMATIC SCHEMA MIGRATION (For Vercel/Production) ---
+    with app.app_context():
+        from sqlalchemy import text
+        try:
+            # Check/Add 'data' column to 'file' table
+            with db.engine.connect() as conn:
+                # 1. Update File table
+                try:
+                    conn.execute(text("ALTER TABLE file ADD COLUMN data BYTEA"))
+                    conn.commit()
+                    print("Added 'data' column to 'file' table.")
+                except Exception as e:
+                    # Column likely exists or table doesn't exist yet (handled by db.create_all)
+                    # For SQLite (local), syntax is different (ADD COLUMN data BLOB)
+                    # But assuming Vercel is Postgres. Handling SQLite fallback just in case.
+                    if "sqlite" in str(app.config['SQLALCHEMY_DATABASE_URI']):
+                         try:
+                             conn.execute(text("ALTER TABLE file ADD COLUMN data BLOB"))
+                             conn.commit()
+                         except:
+                             pass
+                    pass
+
+                # 2. Update Company table
+                try:
+                    conn.execute(text("ALTER TABLE company ADD COLUMN logo_data BYTEA"))
+                    conn.commit()
+                    print("Added 'logo_data' column to 'company' table.")
+                except Exception as e:
+                     if "sqlite" in str(app.config['SQLALCHEMY_DATABASE_URI']):
+                         try:
+                             conn.execute(text("ALTER TABLE company ADD COLUMN logo_data BLOB"))
+                             conn.commit()
+                         except:
+                             pass
+                     pass
+
+        except Exception as e:
+            print(f"Schema migration error (ignored if tables/columns exist): {e}")
+
     # --- FIX FOR READ-ONLY FILE SYSTEM ---
+    # We now store files in DB, so UPLOAD_FOLDER is less critical but kept for temp ops if needed
     if os.environ.get('VERCEL'):
-        # On Vercel, use the temporary folder provided by the OS
-        upload_path = '/tmp'
+        app.config['UPLOAD_FOLDER'] = '/tmp'
     else:
-        # On your laptop, keep using your local uploads folder
-        upload_path = os.path.abspath(os.path.join(app.root_path, '..', 'uploads'))
-        if not os.path.exists(upload_path):
-            os.makedirs(upload_path)
-            
-    app.config['UPLOAD_FOLDER'] = upload_path
+        app.config['UPLOAD_FOLDER'] = os.path.abspath(os.path.join(app.root_path, '..', 'uploads'))
+        if not os.path.exists(app.config['UPLOAD_FOLDER']):
+            os.makedirs(app.config['UPLOAD_FOLDER'])
+
 
     return app

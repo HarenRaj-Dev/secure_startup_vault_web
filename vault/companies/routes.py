@@ -89,21 +89,9 @@ def company_settings(company_id):
             logo_file = form.logo.data
             raw_name = secure_filename(logo_file.filename)
             logo_filename = f"{uuid.uuid4().hex}_{raw_name}"
-            logos_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'logos')
-            os.makedirs(logos_dir, exist_ok=True)
-            logo_path = os.path.join(logos_dir, logo_filename)
-            logo_file.save(logo_path)
-            # Remove old logo if it exists and isn't default
-            if company.logo and company.logo != 'logo.svg':
-                old_logo_path = os.path.join(current_app.config['UPLOAD_FOLDER'], company.logo)
-                if os.path.exists(old_logo_path):
-                    try:
-                        os.remove(old_logo_path)
-                    except:
-                        pass
-            
-            # store relative path under uploads so template can detect
-            company.logo = os.path.join('logos', logo_filename)
+            # Store in DB
+            company.logo = os.path.join('logos', logo_filename) # Keep relative path for consistency if needed, or just filename
+            company.logo_data = logo_file.read() # Store binary
             
         db.session.commit()
         from vault.companies.services import log_activity
@@ -165,15 +153,9 @@ def remove_logo(company_id):
         return redirect(url_for('companies.company_settings', company_id=company_id))
     
     if company.logo and company.logo != 'logo.svg':
-        # Delete the file from the writable upload folder
-        logo_path = os.path.join(current_app.config['UPLOAD_FOLDER'], company.logo)
-        if os.path.exists(logo_path):
-            try:
-                os.remove(logo_path)
-            except Exception as e:
-                flash(f"Error deleting logo file: {e}", "danger")
-                return redirect(url_for('companies.company_settings', company_id=company_id))
+        # Just clear the DB fields
         company.logo = 'logo.svg'
+        company.logo_data = None
         db.session.commit()
         log_activity(company_id, current_user.email, "Removed company logo")
         flash("Logo removed successfully.", "success")
@@ -194,9 +176,8 @@ def company_files(company_id):
     
     # Calculate file sizes
     for file in files:
-        file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], file.encrypted_name)
-        if os.path.exists(file_path):
-            file.size = os.path.getsize(file_path)
+        if file.data:
+            file.size = len(file.data)
         else:
             file.size = 0
     
@@ -229,17 +210,18 @@ def upload_company_file(company_id):
         file_content = file_storage.read()
         encrypted_data, encrypted_aes_key, iv = encrypt_file_data(file_content, current_user.rsa_public_key)
         
-        # Save
+        # Save to DB
         unique_name = str(uuid.uuid4())
-        file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], unique_name)
+        # file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], unique_name)
         
-        with open(file_path, 'wb') as f:
-            f.write(encrypted_data)
+        # with open(file_path, 'wb') as f:
+        #     f.write(encrypted_data)
         
         # DB
         new_file = File(
             filename=original_filename,
             encrypted_name=unique_name,
+            data=encrypted_data, # Store file content
             user_id=current_user.id,
             company_id=company_id,
             encrypted_aes_key=encrypted_aes_key,
@@ -270,14 +252,11 @@ def download_company_file(company_id, file_id):
             flash("File not found in this company.", "danger")
             return redirect(url_for('companies.company_files', company_id=company_id))
         
-        # Read encrypted file
-        file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], file_record.encrypted_name)
-        if not os.path.exists(file_path):
-            flash("File not found on server.", "danger")
-            return redirect(url_for('companies.company_files', company_id=company_id))
-        
-        with open(file_path, 'rb') as f:
-            encrypted_data = f.read()
+        # Read encrypted data from DB
+        encrypted_data = file_record.data
+        if not encrypted_data:
+             flash("File content not found.", "danger")
+             return redirect(url_for('companies.company_files', company_id=company_id))
         
         # Decrypt
         decrypted_data = decrypt_file_data(
@@ -579,9 +558,17 @@ def remove_user(company_id, user_id):
 
 @companies_bp.route('/logo/<path:filename>')
 def serve_logo(filename):
-    """Serve uploaded logo files from the configured UPLOAD_FOLDER."""
-    logos_dir = os.path.join(current_app.config['UPLOAD_FOLDER'])
-    try:
-        return send_from_directory(logos_dir, filename)
-    except Exception:
-        return redirect(url_for('static', filename='img/logo.svg'))
+    """Serve uploaded logo files from the database."""
+    # Try to find company with this logo
+    company = Company.query.filter(Company.logo.like(f"%{filename}%")).first()
+    
+    if company and company.logo_data:
+        return send_file(
+            io.BytesIO(company.logo_data),
+            mimetype='image/png', # Assuming PNG/JPG, browser handles it well usually
+            as_attachment=False,
+            download_name=filename
+        )
+            
+    # Fallback to static default
+    return redirect(url_for('static', filename='img/logo.svg'))

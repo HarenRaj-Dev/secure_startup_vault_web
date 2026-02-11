@@ -38,11 +38,10 @@ def dashboard():
     # Fetch user's personal files (where company_id is NULL)
     user_files = File.query.filter_by(user_id=current_user.id, company_id=None).all()
     
-    # Calculate file sizes
+    # Calculate file sizes (based on DB data length)
     for file in user_files:
-        file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], file.encrypted_name)
-        if os.path.exists(file_path):
-            file.size = os.path.getsize(file_path)
+        if file.data:
+            file.size = len(file.data)
         else:
             file.size = 0
     
@@ -81,17 +80,18 @@ def upload_file():
         file_content = file_storage.read()
         encrypted_data, aes_key, iv = encrypt_file_data(file_content, current_user.rsa_public_key)
         
-        # 2. Save encrypted blob to disk
+        # 2. Save encrypted blob to DB (instead of disk)
         unique_name = str(uuid.uuid4())
-        file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], unique_name)
+        # file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], unique_name)
         
-        with open(file_path, 'wb') as f:
-            f.write(encrypted_data)
+        # with open(file_path, 'wb') as f:
+        #     f.write(encrypted_data)
         
         # 3. Save metadata to DB
         new_file = File(
             filename=original_filename,
             encrypted_name=unique_name,
+            data=encrypted_data, # Store file content in DB
             encrypted_aes_key=aes_key,
             iv=iv,
             user_id=current_user.id
@@ -113,14 +113,12 @@ def download_file(file_id):
             flash("Unauthorized access!", "danger")
             return redirect(url_for('main.dashboard'))
         
-        # Read encrypted file from disk
-        file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], file_record.encrypted_name)
-        if not os.path.exists(file_path):
-            flash("File not found on server.", "danger")
-            return redirect(url_for('main.dashboard'))
+        # Read encrypted data from DB
+        encrypted_data = file_record.data
         
-        with open(file_path, 'rb') as f:
-            encrypted_data = f.read()
+        if not encrypted_data:
+            flash("File not found in database (Legacy file or error).", "danger")
+            return redirect(url_for('main.dashboard'))
         
         # Decrypt using User's Private Key
         decrypted_data = decrypt_file_data(
@@ -166,10 +164,12 @@ def view_file(file_id):
         flash("Unauthorized access!", "danger")
         return redirect(url_for('main.dashboard'))
     
-    # 1. Read encrypted file from disk
-    file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], file_record.encrypted_name)
-    with open(file_path, 'rb') as f:
-        encrypted_data = f.read()
+    # 1. Read encrypted data from DB
+    encrypted_data = file_record.data
+    
+    if not encrypted_data:
+         flash("File content not found.", "danger")
+         return redirect(url_for('main.dashboard'))
     
     # 2. Decrypt using User's Private Key
     decrypted_data = decrypt_file_data(
