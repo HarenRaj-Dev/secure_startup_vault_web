@@ -1,7 +1,7 @@
 import os
 import uuid
 import io
-from flask import render_template, url_for, flash, redirect, request, current_app, send_file
+from flask import render_template, url_for, flash, redirect, request, current_app, send_file, make_response
 from flask_login import current_user, login_required
 from flask_wtf.csrf import generate_csrf
 from vault import db
@@ -205,3 +205,36 @@ def terms():
 @main_bp.route('/contact')
 def contact():
     return render_template('main/contact.html', companies=_get_user_companies())
+
+@main_bp.route('/sitemap.xml')
+def sitemap():
+    """Generate sitemap.xml dynamically."""
+    pages = []
+    
+    # All static pages that don't require login
+    # Use _external=True to get the full URL (https://...)
+    pages.append(url_for('auth.login', _external=True))
+    pages.append(url_for('auth.register', _external=True))
+    pages.append(url_for('main.about', _external=True))
+    pages.append(url_for('main.privacy', _external=True))
+    pages.append(url_for('main.terms', _external=True))
+    pages.append(url_for('main.contact', _external=True))
+    
+    sitemap_xml = render_template('main/sitemap_template.xml', pages=pages)
+    response = make_response(sitemap_xml)
+    response.headers["Content-Type"] = "application/xml"
+    return response
+
+@main_bp.route('/robots.txt')
+def robots():
+    """Generate robots.txt dynamically."""
+    lines = [
+        "User-agent: *",
+        "Disallow: /dashboard",
+        "Disallow: /vault/",
+        "Disallow: /companies/",
+        f"Sitemap: {url_for('main.sitemap', _external=True)}"
+    ]
+    response = make_response("\n".join(lines))
+    response.headers["Content-Type"] = "text/plain"
+    return response
