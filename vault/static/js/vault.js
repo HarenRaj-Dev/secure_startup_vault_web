@@ -1,11 +1,11 @@
 // Feature 6: Anti-Screenshot & Privacy
 // Temporarily disabled for screenshots
-// document.addEventListener('keyup', (e) => {
-//     if (e.key === 'PrintScreen' || e.keyCode === 44) {
-//         navigator.clipboard.writeText('Screenshot Blocked');
-//         alert('Screenshots are disabled for security in Secure Startup Vault.');
-//     }
-// });
+document.addEventListener('keyup', (e) => {
+    if (e.key === 'PrintScreen' || e.keyCode === 44) {
+        navigator.clipboard.writeText('Screenshot Blocked');
+        alert('Screenshots are disabled for security in Secure Startup Vault.');
+    }
+});
 
 // Blur content when the user leaves the tab
 window.addEventListener('blur', () => {
