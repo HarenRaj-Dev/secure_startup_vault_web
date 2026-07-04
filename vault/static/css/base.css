@@ -350,18 +350,37 @@ button,
     left: 0;
     right: 0;
     bottom: 0;
-    height: 60px;
+    min-height: 60px;
+    padding: 0.75rem 1rem;
     background: #0f172a;
     border-top: 1px solid var(--border);
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 0.4rem;
     z-index: 900;
+    text-align: center;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.main-shifted ~ .site-footer {
+    left: 260px;
+    width: calc(100% - 260px);
 }
 
 .site-footer .footer-links {
     color: var(--text-muted);
     font-size: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0.25rem;
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
 }
 
 .site-footer .footer-links a {
@@ -375,10 +394,21 @@ button,
     color: var(--accent);
 }
 
+.site-footer p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.5;
+    width: 100%;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 /* Ensure page content doesn't get hidden behind fixed footer */
 body {
-    padding-bottom: 80px;
-    /* matches footer height + spacing */
+    padding-bottom: 100px;
+    /* gives the stacked footer enough room */
 }
 
 /* Generic page container for static pages */
