@@ -1,17 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!--Google Site Verification , indexing , links to CSS and Icons-->
     <meta name="google-site-verification" content="J-3qT1YwTFPaxkWmWikrd2O2Urvds3W9NMAyD9k0r1c" />
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Startup Vault</title>
-    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/shield-icon.svg') }}">
+    <meta name="robots" content="index, follow">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/SSV_Logo.png') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/switches.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/companies.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/footers.css') }}">
+
+    <!-- Default meta tags for character encoding and viewport settings -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!--Meta Tags for SEO and canonical links-->
+    <title>Secure Startup Vault</title>
+    <meta name="description" content="Secure your startup documents with our encrypted file storage solution.">
+    <meta name="keywords" content="secure, startup, vault, encrypted, file storage, zero-knowledge encryption">
+    <meta name="author" content="K P Haren Raj">
+    <meta name="creator" content="K P Haren Raj">
+    <meta name="publisher" content="HDevs Labs">
+    <meta name="copyright" content="&copy; 2026 K P Haren Raj. Secure Startup Vault by HDevs Labs. All rights reserved.">
+    <meta name="language" content="en">
+    <link rel="canonical" href="https://secure-startup-vault-web.vercel.app/">
+
+    <!--OG tags and shared meta tags for social media-->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Secure Startup Vault">
+    <meta property="og:description" content="Secure your startup documents with our encrypted file storage solution.">
+    <meta property="og:url" content="https://secure-startup-vault-web.vercel.app/">
+    <meta property="og:image" content="https://secure-startup-vault-web.vercel.app/vault/static/img/SSV_Logo.png">
+    <meta property="og:image:alt" content="Secure Startup Vault Logo">
+    <meta property="og:site_name" content="Secure Startup Vault">
+    <meta property="og:locale" content="en_IN">
+    
+    <!--meta tags for twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Secure Startup Vault">
+    <meta name="twitter:description" content="Secure your startup documents with our encrypted file storage solution.">
+    <meta name="twitter:image" content="https://secure-startup-vault-web.vercel.app/vault/static/img/SSV_Logo.png">
+    <meta name="twitter:image:alt" content="Secure Startup Vault Logo">
+    
+    <!--Theme Color and Color Scheme-->
+    <meta name="theme-color" content="#111827">
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context":"https://schema.org",
+      "@type":"SoftwareApplication",
+      "name":"Secure Startup Vault",
+      "applicationCategory":"BusinessApplication",
+      "operatingSystem":"Web",
+
+      "creator":{
+        "@type":"Person",
+        "name":"K P Haren Raj"
+      },
+
+      "publisher":{
+        "@type":"Organization",
+        "name":"HDevs Labs"
+      },
+
+      "copyrightHolder":{
+        "@type":"Person",
+        "name":"K P Haren Raj"
+      },
+      
+      "url":"https://secure-startup-vault-web.vercel.app/",
+      "image":"https://secure-startup-vault-web.vercel.app/vault/static/img/SSV_Logo.png",
+      "description":"A secure platform for storing and protecting startup ideas."
+    }
+    </script>
 </head>
 <body>
     {% if current_user.is_authenticated %}
@@ -47,6 +111,7 @@
             &nbsp;|&nbsp;
             <a href="{{ url_for('main.contact') }}">Contact</a>
         </div>
+        <p>&copy; 2026 K P Haren Raj. Secure Startup Vault by HDevs Labs. All rights reserved.</p>
     </footer>
 </body>
 </html>
